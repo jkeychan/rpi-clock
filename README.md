@@ -4,6 +4,9 @@
 
 Displaying local time and weather from [OpenWeatherMap APIs](https://openweathermap.org/current/)
 
+![Animated GIF of a 7-segment display cycling through displaying time, followed by outside temperature, heat index, and relative humidity values](rpi-clock.gif)
+
+
 ## Requirements
 
 - Python 3
