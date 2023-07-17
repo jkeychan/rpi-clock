@@ -1,4 +1,5 @@
-from custom_chars import custom_chars
+#!/usr/bin/python3
+
 import os
 import time
 import board
@@ -7,6 +8,7 @@ import adafruit_ht16k33.segments as segments
 import requests
 import json
 import configparser
+import ntplib
 
 # Check if custom_chars.py exists, and if not, create a new one with default values
 CUSTOM_CHARS_FILE = 'custom_chars.py'
@@ -61,7 +63,6 @@ def display_time():
     time_str = "{:2d}{:02d}".format(hour, minute)
     display.print(time_str)
 
-
 # Helper function to display the humidity on the display
 
 
@@ -79,6 +80,9 @@ DEFAULT_CONFIG = {
     'Display': {
         'TIME_FORMAT': '12',
         'TEMP_UNIT': 'C'
+    },
+    'NTP': {
+        'PREFERRED_SERVER': '127.0.0.1'
     }
 }
 
@@ -103,6 +107,14 @@ if 'Weather' not in config:
 if 'ZIP_CODE' not in config['Weather']:
     config['Weather']['ZIP_CODE'] = DEFAULT_CONFIG['Weather']['ZIP_CODE']
 
+# Check if 'NTP' section exists, and if not, add it with default values
+if 'NTP' not in config:
+    config['NTP'] = DEFAULT_CONFIG['NTP']
+
+# Check if 'PREFERRED_SERVER' option exists in the 'NTP' section, and if not, add it with a default value
+if 'PREFERRED_SERVER' not in config['NTP']:
+    config['NTP']['PREFERRED_SERVER'] = DEFAULT_CONFIG['NTP']['PREFERRED_SERVER']
+
 # Write the final configuration to the file
 with open(CONFIG_FILE, 'w') as configfile:
     config.write(configfile)
@@ -112,6 +124,7 @@ api_key = config.get('Weather', 'API_KEY')
 zip_code = config.get('Weather', 'ZIP_CODE')
 time_format = config.get('Display', 'TIME_FORMAT')
 temp_unit = config.get('Display', 'TEMP_UNIT')
+preferred_ntp_server = config.get('NTP', 'PREFERRED_SERVER')
 
 # Initialize I2C bus and the display
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -143,10 +156,26 @@ def fetch_weather(api_endpoint, zip_code, api_key, temp_unit):
         print("Failed to get weather data:", e)
         return None
 
+# Helper function to get the current time from the NTP server or local system time
+
+
+def get_current_time():
+    try:
+        ntp_client = ntplib.NTPClient()
+        response = ntp_client.request(
+            preferred_ntp_server, version=3, timeout=5)
+        return time.localtime(response.tx_time)
+
+    except Exception as e:
+        print("Failed to get time from NTP server:", e)
+        return time.localtime()
+
 
 # Loop to display time and weather alternately
 while True:
-    # Display the time for 3 seconds (you can adjust the time as needed)
+    # Get the current time from the NTP server or local system time
+    current_time = get_current_time()
+
     for _ in range(6):
         display_time()
         display.colon = True  # Enable the colon for time display
@@ -185,3 +214,14 @@ while True:
         time.sleep(3)
 
         display.fill(0)
+
+    else:
+        # If weather data fetch fails, display the local system time for 5 seconds
+        for _ in range(5):
+            display_time()
+            display.colon = True  # Enable the colon for time display
+            display.show()
+            time.sleep(1)  # Keep the colon enabled for 1 second
+            display.colon = False  # Disable the colon for time display
+            display.show()
+            time.sleep(1)  # Keep the colon disabled for 1 second
