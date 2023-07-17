@@ -45,14 +45,22 @@ def display_temperature(temp, unit):
 
 def display_time():
     now = time.localtime()
-    hour = now.tm_hour % 12
-    minute = now.tm_min
+    hour = now.tm_hour
 
-    if hour == 0:
-        hour = 12
+    # Check the time format from the config file
+    time_format = config.get('Display', 'TIME_FORMAT')
+
+    if time_format == '12':
+        # Convert to 12-hour format
+        hour = hour % 12
+        if hour == 0:
+            hour = 12
+
+    minute = now.tm_min
 
     time_str = "{:2d}{:02d}".format(hour, minute)
     display.print(time_str)
+
 
 # Helper function to display the humidity on the display
 
