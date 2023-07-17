@@ -15,7 +15,7 @@ Displaying local time and weather from [OpenWeatherMap APIs](https://openweather
 
 Be sure to update the **[config.ini](config.ini)** file with your [Openweathermap API Key](https://openweathermap.org/api_keys/) and other details.
 
-Then simply run `python3 rpi-clock.py`. You should see output on your [Adafruit 1.2" 7-Segment LED HT16K33 Backpack](https://learn.adafruit.com/adafruit-led-backpack/1-2-inch-7-segment-backpack/).
+Then simply run `python3 clock.py`. You should see output on your [Adafruit 1.2" 7-Segment LED HT16K33 Backpack](https://learn.adafruit.com/adafruit-led-backpack/1-2-inch-7-segment-backpack/).
 
 
 
